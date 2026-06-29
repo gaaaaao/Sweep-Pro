@@ -16,10 +16,10 @@ manifest:
       revision: 53283a25c2ff26fd44e31e6885bf68cce0ddefd7
     - name: zmk-behavior-report
       remote: nxtkb
-      revision: main
+      revision: 476f43da1f98b4a6150c9c0e499a257bd64a29a0
       import: west.yml
     - name: cirque-input-module
       remote: nxtkb
-      revision: main
+      revision: 7b6b7913ae294bbccae4db8ae550ea7d38f63e9a
   self:
     path: config
