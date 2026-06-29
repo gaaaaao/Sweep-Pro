@@ -1,20 +1,25 @@
 manifest:
   remotes:
-  - name: zmkfirmware
-    url-base: https://github.com/lynnlee0522 # 修改这里
-  - name: nxtkb
-    url-base: https://github.com/nxtkb
+    - name: zmkfirmware
+      url-base: https://github.com/lynnlee0522 # 修改这里
+    - name: nxtkb
+      url-base: https://github.com/nxtkb
+    - name: gaaaaao
+      url-base: https://github.com/gaaaaao
   projects:
-  - name: zmk
-    remote: zmkfirmware
-    revision: ink_rotation # 修改这里，指定分支名
-    import: app/west.yml
-  - name: zmk-behavior-report
-    remote: nxtkb
-    revision: main
-    import: west.yml
-  - name: cirque-input-module
-    remote: nxtkb
-    revision: main
+    - name: zmk
+      remote: zmkfirmware
+      revision: ink_rotation # 修改这里，指定分支名
+      import: app/west.yml
+    - name: zmk-vfx-sweep-pro-display
+      remote: gaaaaao
+      revision: 53283a25c2ff26fd44e31e6885bf68cce0ddefd7
+    - name: zmk-behavior-report
+      remote: nxtkb
+      revision: main
+      import: west.yml
+    - name: cirque-input-module
+      remote: nxtkb
+      revision: main
   self:
     path: config
