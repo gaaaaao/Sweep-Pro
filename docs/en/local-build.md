@@ -197,21 +197,26 @@ Build the left half with display and both Codex transports:
 west build -s app -p -d build/sweep_left_display_codex -b nice_nano//zmk \
     -S studio-rpc-usb-uart \
     -S nxtkb-codex-micro-usb \
-    -S nxtkb-codex-micro-ble -- \
+    -S nxtkb-codex-micro-ble \
+    -S nxtkb-codex-micro-compat-identity -- \
     -DSHIELD="sweep_left sweep_left_display_hw sweep_display" \
     -DZMK_EXTRA_MODULES="$CODEX_EXTRA_MODULES" \
     -DZMK_CONFIG="$ZMK_CONFIG_DIR"
 ```
 
-NXTKB development checkouts may also contain a gitignored
-`nxtkb-codex-micro-lab-identity` snippet for local interoperability testing against the current
-ChatGPT desktop detection. It changes both the USB VID/PID and Bluetooth Device Information
-identity and is intentionally not part of the module repository. Never publish or ship firmware
-built with that identity. External integrations must use an identity they are authorized to ship.
+The module includes the optional `nxtkb-codex-micro-compat-identity` snippet for interoperability
+with the current ChatGPT desktop discovery. It changes only the USB VID/PID and Bluetooth PnP
+VID/PID. Product, manufacturer, Bluetooth, and Device Information names remain owned by the
+keyboard configuration. Sweep Pro release builds enable this snippet.
+
+These identifiers do not imply OpenAI certification or an identifier assignment to NXTKB or
+third-party keyboard makers. The discovery behavior is undocumented and may change. External
+integrators are responsible for determining whether they are authorized to distribute firmware
+using the compatibility identifiers.
 The right half continues to use the normal `sweep_right` or `sweep_right_trackpad` firmware.
 
 After first flashing a BLE-enabled build, forget the old keyboard in the host Bluetooth settings,
-clear the selected ZMK Bluetooth profile, and pair with `NXTKB Codex Lab` again. HID report maps are
+clear the selected ZMK Bluetooth profile, and pair with the keyboard's configured name again. HID report maps are
 cached in the bond. Use the existing output-toggle key to prefer Bluetooth; a connected USB cable
 may still be used for charging. USB and Bluetooth keyboard connections remain active instead of
 disconnecting each other. Every connected computer keeps an independent Codex protocol and Agent
