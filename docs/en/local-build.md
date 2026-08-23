@@ -30,11 +30,18 @@ Install the Zephyr SDK from AUR, or install it manually by following the ZMK/Zep
 paru -S zephyr-sdk
 ```
 
-If the SDK is not detected automatically, set these variables in the current shell:
+On Apple Silicon macOS, install the host tools with Homebrew and install the Zephyr SDK version
+required by the ZMK revision pinned in `config/west.yml` (currently 0.17.0):
+
+```shell
+brew install cmake ninja ccache dtc wget xz protobuf
+```
+
+If the SDK is not detected automatically, point Zephyr at your installation in the current shell:
 
 ```shell
 export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
-export ZEPHYR_SDK_INSTALL_DIR="$HOME/zephyr-sdk-0.17.0"
+export ZEPHYR_SDK_INSTALL_DIR="/path/to/zephyr-sdk-0.17.0"
 ```
 
 ## Initialize Python
@@ -157,6 +164,64 @@ west build -d build/sweep_right_trackpad
 ```
 
 If you change the shield, extra modules, snippets, or `ZMK_CONFIG`, rerun the full command with `-p` to regenerate the build directory.
+
+## Codex Micro USB and Bluetooth build
+
+This build adds a second vendor-defined USB HID interface and an encrypted vendor-defined
+HID-over-GATT report while preserving the normal ZMK USB/Bluetooth HID and Studio USB UART
+interfaces. Codex RPC follows ZMK's selected output endpoint, including the active Bluetooth
+profile. Inactive USB and Bluetooth hosts cannot take over the Codex session by retrying.
+
+The repository's default GitHub Actions workflow builds Codex-enabled central firmware and applies
+the required official-ZMK compatibility patch automatically. For a local checkout in which the
+Codex module is a west project, apply the same declared patch once before building:
+
+```shell
+west patch -sm zmk-feature-codex-micro apply
+```
+
+If the module is instead a sibling directory outside the west workspace, apply its patch to ZMK
+once with `git apply`, then add the module to the local module list:
+
+```shell
+git -C "$NXTKB_ROOT/zmkfirmware/zmk" apply --check \
+    "$NXTKB_ROOT/zmk-feature-codex-micro/zephyr/patches/zmk/zmk-usb-hid-interrupt-out.patch"
+git -C "$NXTKB_ROOT/zmkfirmware/zmk" apply \
+    "$NXTKB_ROOT/zmk-feature-codex-micro/zephyr/patches/zmk/zmk-usb-hid-interrupt-out.patch"
+CODEX_EXTRA_MODULES="$EXTRA_MODULES;$NXTKB_ROOT/zmk-feature-codex-micro"
+```
+
+Build the left half with display and both Codex transports:
+
+```shell
+west build -s app -p -d build/sweep_left_display_codex -b nice_nano//zmk \
+    -S studio-rpc-usb-uart \
+    -S nxtkb-codex-micro-usb \
+    -S nxtkb-codex-micro-ble \
+    -S nxtkb-codex-micro-compat-identity -- \
+    -DSHIELD="sweep_left sweep_left_display_hw sweep_display" \
+    -DZMK_EXTRA_MODULES="$CODEX_EXTRA_MODULES" \
+    -DZMK_CONFIG="$ZMK_CONFIG_DIR"
+```
+
+The module includes the optional `nxtkb-codex-micro-compat-identity` snippet for interoperability
+with the current ChatGPT desktop discovery. It changes only the USB VID/PID and Bluetooth PnP
+VID/PID. Product, manufacturer, Bluetooth, and Device Information names remain owned by the
+keyboard configuration. Sweep Pro release builds enable this snippet.
+
+These identifiers do not imply OpenAI certification or an identifier assignment to NXTKB or
+third-party keyboard makers. The discovery behavior is undocumented and may change. External
+integrators are responsible for determining whether they are authorized to distribute firmware
+using the compatibility identifiers.
+The right half continues to use the normal `sweep_right` or `sweep_right_trackpad` firmware.
+
+After first flashing a BLE-enabled build, forget the old keyboard in the host Bluetooth settings,
+clear the selected ZMK Bluetooth profile, and pair with the keyboard's configured name again. HID report maps are
+cached in the bond. Use the existing output-toggle key to prefer Bluetooth; a connected USB cable
+may still be used for charging. USB and Bluetooth keyboard connections remain active instead of
+disconnecting each other. Every connected computer keeps an independent Codex protocol and Agent
+state session; Codex keys and the display follow only the currently selected ZMK output. Switching
+back restores the last Agent state reported by that computer.
 
 ## Troubleshooting
 

@@ -1,6 +1,19 @@
-name: Build ZMK firmware
-on: [push, pull_request, workflow_dispatch]
+name: Build firmware
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@cb615aee9a7c427e251f2ab62080c1a44a165da9
+    # The module-owned workflow applies its version-matched ZMK compatibility
+    # patch before building. Pinning it keeps the module and build procedure in sync.
+    uses: nxtkb/zmk-feature-codex-micro/.github/workflows/build-user-config.yml@0240a936280eb9ecec769279715999968b9760cd
+    with:
+      build_matrix_path: build.yaml
+      archive_name: sweep-pro-firmware
